@@ -1,11 +1,11 @@
 {
   "name": "nodebb-plugin-category-like-tag",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "use tag as a category",
+  "main": "library.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "name",
+  "license": "MIT"
 }

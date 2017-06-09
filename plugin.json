@@ -1,0 +1,11 @@
+{
+    "id": "nodebb-plugin-category-like-tag",
+    "name": "category-like tag",
+    "description": "use tag as a category",
+    "url": "https://github.com/huaying/nodebb-plugin-category-like-tag",
+    "library": "./library.js",
+    "hooks": [
+        { "hook": "static:app.load", "method": "init" }
+    ],
+    "templates": "./public/templates"
+}
