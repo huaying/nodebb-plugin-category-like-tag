@@ -1,11 +1,18 @@
 {
     "id": "nodebb-plugin-category-like-tag",
-    "name": "category-like tag",
+    "name": "Category-like Tag",
     "description": "use tag as a category",
     "url": "https://github.com/huaying/nodebb-plugin-category-like-tag",
     "library": "./library.js",
     "hooks": [
-        { "hook": "static:app.load", "method": "init" }
+        { "hook": "static:app.load", "method": "init" },
+        { "hook": "filter:admin.header.build", "method": "admin.menu"}
     ],
-    "templates": "./public/templates"
+    "staticDirs": {
+      "static": "./static"
+    },
+    "acpScripts": [
+      "static/lib/admin.js"
+    ],
+    "templates": "static/templates"
 }
