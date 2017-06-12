@@ -6,7 +6,8 @@
     "library": "./library.js",
     "hooks": [
         { "hook": "static:app.load", "method": "init" },
-        { "hook": "filter:admin.header.build", "method": "admin.menu"}
+        { "hook": "filter:admin.header.build", "method": "admin.menu"},
+        { "hook": "filter:category.get", "method": "addTagToCategory" }
     ],
     "staticDirs": {
       "static": "./static"
