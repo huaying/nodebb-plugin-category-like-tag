@@ -105,7 +105,7 @@ migrate.run = function(cid, callback) {
   ], callback);
 }
 
-migrate.recover = function (cid, next){
+migrate.recover = function (cid, callback){
   async.waterfall([
     async.apply(db.getSortedSetRange, 'cid:' + cid + ':children', 0, -1),
     function (cids, next) {
@@ -114,17 +114,17 @@ migrate.recover = function (cid, next){
     },
     function(data, next) {
       async.each(data, function(c, next){
-        migrate.recoverMoveTopicToParentCategory(c);
+        migrate.recoverMoveTopicToParentCategory(c, next);
       }, next);
     }
-  ], next);
+  ], callback);
 }
 
 // migrate.run(5, function() {
 //   console.log('migration done');
 // });
 
-migrate.recover(5, function() {
-  console.log('recover done');
-});
+// migrate.recover(5, function() {
+//   console.log('recover done');
+// });
 module.exports = migrate;

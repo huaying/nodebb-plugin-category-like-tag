@@ -5,12 +5,16 @@ define('admin/plugins/category-like-tag', [], function() {
   var ACP = {};
 
 	ACP.init = function() {
-
-    $('#save').click(function() {
-      socket.emit('admin.plugins.clt.migrate', function(err, data) {
-
+    $('#migrate').click(function() {
+      socket.emit('admin.plugins.clt.migrate', function() {
+        bootbox.alert('migration done');
       })
-    })
+    });
+    $('#recover').click(function() {
+      socket.emit('admin.plugins.clt.recover', function() {
+        bootbox.alert('recover done');
+      })
+    });
 	};
 
 	return ACP;

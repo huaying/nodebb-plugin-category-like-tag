@@ -10,12 +10,13 @@ var plugin = {};
 var migrate = require('./migrate')
 
 socketAdmin.plugins.clt = {};
-socketAdmin.plugins.clt.migrate = function() {
+socketAdmin.plugins.clt.migrate = function(socket, data, callback) {
   var excuted_cid = 5;
-  migrate.run(excuted_cid);
+  migrate.run(excuted_cid, callback);
 };
-socketAdmin.plugins.clt.migrate = function() {
-  migrate.run(excuted_cid);
+socketAdmin.plugins.clt.recover = function(socket, data, callback) {
+  var excuted_cid = 5;
+  migrate.recover(excuted_cid, callback);
 };
 
 
