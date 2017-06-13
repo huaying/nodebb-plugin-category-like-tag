@@ -10,4 +10,4 @@ Install:
 
 - p.s. make sure the order of the plugin should come after nodebb-theme-leetcode so that it can override the template
 
-- TODO: redirect `/category/767/operating-system` to `/tags/operating%20system`
+- Done: redirect `/category/767/operating-system` to `/tags/operating%20system`
