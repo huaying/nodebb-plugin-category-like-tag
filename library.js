@@ -24,11 +24,6 @@ plugin.init = function(params, callback) {
   params.router.get('/admin/plugins/category-like-tag', params.middleware.admin.buildHeader, renderAdmin);
   params.router.get('/api/admin/plugins/category-like-tag', renderAdmin);
 
-  // temporary redirection
-  params.router.get('/category/767/operating-system', function(req, res, next) {
-    res.redirect('/tags/operating system');
-  });
-
   var redirect_middleware = function (req, res, next) {
 	var key = 'cid:' + req.params.category_id + ':custom_tag';
 	db.getObject(key, function(err, custom_tag) {
