@@ -7,7 +7,7 @@ var async = require('async');
 var plugin = {};
 
 
-var migrate = require('./migrate')
+var migrate = require('./migrate');
 
 socketAdmin.plugins.clt = {};
 socketAdmin.plugins.clt.migrate = function(socket, data, callback) {
@@ -28,8 +28,22 @@ plugin.init = function(params, callback) {
   params.router.get('/category/767/operating-system', function(req, res, next) {
     res.redirect('/tags/operating system');
   });
+
+  var redirect_middleware = function (req, res, next) {
+	var key = 'cid:' + req.params.category_id + ':custom_tag';
+	db.getObject(key, function(err, custom_tag) {
+	  if (custom_tag && custom_tag.enable) {
+		return res.redirect('/tags/' + custom_tag.tag);
+	  } else {
+		next();
+	  }
+	});
+  };
+
+  params.router.get('/category/:category_id/:slug?', redirect_middleware);
+  params.router.get('/category/:category_id/:slug/:topic_index', redirect_middleware);
   callback();
-}
+};
 
 plugin.addTagToCategory = function(data, next) {
   // hardcode
@@ -40,7 +54,7 @@ plugin.addTagToCategory = function(data, next) {
   async.waterfall([
     async.apply(db.getSortedSetRange, 'cid:' + data.category.cid + ':children', 0, -1),
     function (cids, next) {
-      categories.getCategoriesFields(cids, [], next);
+      categories.getCategoriesFields(cids, ['cid', 'name'], next);
     },
     function (cates, next) {
       //hardcode
@@ -48,7 +62,7 @@ plugin.addTagToCategory = function(data, next) {
       data.category.notCompany = [];
 
       async.eachSeries(cates, function(cate, next) {
-        var key = 'cid:' + cate.cid + ':custom_tag'
+        var key = 'cid:' + cate.cid + ':custom_tag';
         cate.children = [];
         cate.posts = [];
         db.getObject(key, function(err, custom_tag) {
@@ -63,13 +77,13 @@ plugin.addTagToCategory = function(data, next) {
           next();
         });
       }, function(err) {
-        next();
+        next(err, data);
       });
     }
   ], function(err) {
-    next(null, data);
+    next(err, data);
   })
-}
+};
 
 function renderAdmin(req, res, next) {
 	res.render('admin/plugins/category-like-tag', {});

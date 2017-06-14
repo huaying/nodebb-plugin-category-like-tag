@@ -6,23 +6,23 @@ var utils = require.main.require('./src/utils');
 var meta = require.main.require('./src/meta');
 var topics = require.main.require('./src/topics');
 
-var migrate = {}
+var migrate = {};
 migrate.disableCategories = function(cids) {
   // console.log('disable subcategories');
   cids.forEach(function(cid) {
     db.setObjectField('category:' + cid, 'disabled', 1);
   });
-}
+};
 
 migrate.enableCategories = function(cids) {
   // console.log('disable subcategories');
   cids.forEach(function(cid) {
     db.setObjectField('category:' + cid, 'disabled', 0);
   });
-}
+};
 
-migrate.createCategoryLikeTag = function(c, next) {
-  // console.log('create custom tag structure: ' + c.cid);
+migrate.createOrEnableCategoryLikeTag = function(c, next) {
+   console.log('create custom tag structure: ' + c.cid);
   async.waterfall([
     function (next) {
       categories.getAllTopicIds(c.cid, 0, -1, next);
@@ -30,16 +30,20 @@ migrate.createCategoryLikeTag = function(c, next) {
     function (topicIds, next) {
       var data = {
         tag: c.tag,
-        topicIds: topicIds
+		enable: true,
+        topicIds: topicIds  // is this useful?
       };
       db.setObject('cid:' + c.cid + ':custom_tag', data, next);
     }
   ], next);
-}
+};
 
+migrate.disableCategoryLikeTag = function(c, next) {
+  db.setObjectField('cid:' + c.cid + ':custom_tag', 'enable', false, next);
+};
 
 migrate.addCustomTagToTopics = function(c, next) {
-  // console.log('add custom tag to topics: ' + c.cid);
+   console.log('add custom tag to topics: ' + c.cid);
   async.waterfall([
     function (next) {
       categories.getAllTopicIds(c.cid, 0, -1, next);
@@ -50,10 +54,10 @@ migrate.addCustomTagToTopics = function(c, next) {
       }, next);
     }
   ], next);
-}
+};
 
 migrate.moveTopicToParentCategory = function(c, parentCid, next) {
-  // console.log('move topic to parent\'s category: ' + c.cid);
+   console.log('move topic to parent\'s category: ' + c.cid);
   async.waterfall([
     function (next) {
       categories.getAllTopicIds(c.cid, 0, -1, next);
@@ -67,7 +71,7 @@ migrate.moveTopicToParentCategory = function(c, parentCid, next) {
 };
 
 migrate.recoverMoveTopicToParentCategory = function(c, next) {
-  // console.log('recover starts: ' + c.cid);
+   console.log('recover starts: ' + c.cid);
   async.waterfall([
     function (next) {
       categories.getAllTopicIds(c.cid, 0, -1, next);
@@ -78,14 +82,14 @@ migrate.recoverMoveTopicToParentCategory = function(c, next) {
       }, next);
     }
   ], next);
-}
+};
 
 migrate.run = function(cid, callback) {
   async.waterfall([
     async.apply(db.getSortedSetRange, 'cid:' + cid + ':children', 0, -1),
     function (cids, next) {
       migrate.disableCategories(cids);
-      categories.getCategoriesFields(cids, [], next);
+      categories.getCategoriesFields(cids, ['cid', 'name'], next);
     },
     function(data, next) {
       async.each(data, function(c, next){
@@ -96,29 +100,32 @@ migrate.run = function(cid, callback) {
           // create the normal link using category name
           async.apply(topics.createEmptyTag, c.tag),
           // create custom tag
-          async.apply(migrate.createCategoryLikeTag, c),
+          async.apply(migrate.createOrEnableCategoryLikeTag, c),
           async.apply(migrate.addCustomTagToTopics, c),
           async.apply(migrate.moveTopicToParentCategory, c, cid)
         ], next);
       }, next);
     }
   ], callback);
-}
+};
 
 migrate.recover = function (cid, callback){
   async.waterfall([
     async.apply(db.getSortedSetRange, 'cid:' + cid + ':children', 0, -1),
     function (cids, next) {
       migrate.enableCategories(cids);
-      categories.getCategoriesFields(cids, [], next);
+      categories.getCategoriesFields(cids, ['cid', 'name'], next);
     },
     function(data, next) {
       async.each(data, function(c, next){
-        migrate.recoverMoveTopicToParentCategory(c, next);
+		async.parallel([
+		  async.apply(migrate.recoverMoveTopicToParentCategory, c),
+			async.apply(migrate.disableCategoryLikeTag, c)
+		  ], next);
       }, next);
     }
   ], callback);
-}
+};
 
 // migrate.run(5, function() {
 //   console.log('migration done');
