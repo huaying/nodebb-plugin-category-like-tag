@@ -41,13 +41,13 @@ ul.categories li[component="categories/category"] .content h2 a {
 </style>
 
 <div class="subcategory">
-  <!-- IF notCompany.length --><p>tags</p><!-- ENDIF notCompany.length -->
+  <!-- IF notCompany.length --><p>category tags</p><!-- ENDIF notCompany.length -->
 	<ul class="categories" itemscope itemtype="http://www.schema.org/ItemList">
 		<!-- BEGIN notCompany -->
 		<!-- IMPORT partials/categories/tag_item.tpl -->
 		<!-- END notCompany -->
 	</ul>
-  <!-- IF company.length --><p>companys</p><!-- ENDIF company.length -->
+  <!-- IF company.length --><p>company tags</p><!-- ENDIF company.length -->
   <ul class="categories" itemscope itemtype="http://www.schema.org/ItemList">
 		<!-- BEGIN company -->
 		<!-- IMPORT partials/categories/tag_item.tpl -->
