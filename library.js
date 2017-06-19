@@ -49,7 +49,15 @@ plugin.addTagToCategory = function(data, next) {
   async.waterfall([
     async.apply(db.getSortedSetRange, 'cid:' + data.category.cid + ':children', 0, -1),
     function (cids, next) {
-      categories.getCategoriesFields(cids, ['cid', 'name'], next);
+      categories.getCategoriesFields(cids, [
+        'cid',
+        'name',
+        'icon',
+        'backgroundImage',
+        'imageClass',
+        'bgColor',
+        'image',
+        'color'], next);
     },
     function (cates, next) {
       //hardcode
