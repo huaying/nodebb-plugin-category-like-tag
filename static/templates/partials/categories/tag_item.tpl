@@ -7,7 +7,7 @@
     </div>
 
     <h2 class="title">
-      <a href="{config.relative_path}/tags/{../tag}" itemprop="url">
+      <a href="{config.relative_path}/tags/{../parentCid}/{../tag}" itemprop="url">
       {../name}
       </a><br/>
     </h2>
