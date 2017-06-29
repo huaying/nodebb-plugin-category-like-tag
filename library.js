@@ -16,16 +16,41 @@ var controllersHelpers = require.main.require('./src/controllers/helpers');
 
 
 var migrate = require('./migrate');
+var excuted_cid = 5;
 
 socketAdmin.plugins.clt = {};
 socketAdmin.plugins.clt.migrate = function(socket, data, callback) {
-  var excuted_cid = 5;
   migrate.run(excuted_cid, callback);
 };
 socketAdmin.plugins.clt.recover = function(socket, data, callback) {
-  var excuted_cid = 5;
   migrate.recover(excuted_cid, callback);
 };
+socketAdmin.plugins.clt.update = function(socket, data, callback) {
+  async.each(data, function(cate, next){
+    db.setObjectField('cid:' + cate.cid + ':custom_tag', 'isCompanyTag', cate.isCompanyTag, next);
+  }, callback);
+};
+socketAdmin.plugins.clt.getCustomTags = function(socket, data, callback) {
+  async.waterfall([
+    async.apply(db.getSortedSetRange, 'cid:' + excuted_cid + ':children', 0, -1),
+    function (cids, next) {
+      categories.getCategoriesFields(cids, ['cid', 'name'], next);
+    },
+    function(categories, next) {
+      async.eachSeries(categories, function(cate, next) {
+        var key = 'cid:' + cate.cid + ':custom_tag';
+        db.getObject(key, function(err, custom_tag) {
+          if (custom_tag) {
+            cate.isCompanyTag = custom_tag.isCompanyTag;
+          }
+          next();
+        });
+      }, function(err) {
+        next(err, categories);
+      });
+    }
+  ], callback);
+}
 
 
 plugin.init = function(params, callback) {
@@ -126,7 +151,6 @@ plugin.get_category_tag = function(req, res, next) {
 plugin.addTagToCategory = function(data, next) {
   // hardcode
   if (data.category.cid !== 5) return next(null, data);
-  var tagsNotInCompany = ['operating system'];
   data.category.enableTagMode = true;
 
   async.waterfall([
@@ -155,10 +179,10 @@ plugin.addTagToCategory = function(data, next) {
         db.getObject(key, function(err, custom_tag) {
           if (custom_tag) {
             cate.tag = custom_tag.tag;
-            if (tagsNotInCompany.includes(cate.tag)) {
-              data.category.notCompany.push(cate);
-            } else {
+            if (custom_tag.isCompanyTag) {
               data.category.company.push(cate);
+            } else {
+              data.category.notCompany.push(cate);
             }
           }
           next();

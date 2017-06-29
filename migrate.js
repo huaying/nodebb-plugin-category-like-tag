@@ -22,18 +22,25 @@ migrate.enableCategories = function(cids) {
 };
 
 migrate.createOrEnableCategoryLikeTag = function(c, next) {
-   console.log('create custom tag structure: ' + c.cid);
+  console.log('create custom tag structure: ' + c.cid);
+  var custom_tag_key =  'cid:' + c.cid + ':custom_tag';
   async.waterfall([
     function (next) {
       categories.getAllTopicIds(c.cid, 0, -1, next);
     },
     function (topicIds, next) {
-      var data = {
-        tag: c.tag,
-		enable: true,
-        topicIds: topicIds  // is this useful?
-      };
-      db.setObject('cid:' + c.cid + ':custom_tag', data, next);
+      async.waterfall([
+        async.apply(db.getObject, custom_tag_key),
+        function(custom_tag, next) {
+          var data = {
+            tag: c.tag,
+            enable: true,
+            isCompanyTag: custom_tag.isCompanyTag || false,
+            topicIds: topicIds  // is this useful?
+          };
+          db.setObject(custom_tag_key, data, next);
+        },
+      ], next);
     }
   ], next);
 };
